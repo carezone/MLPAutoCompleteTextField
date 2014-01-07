@@ -851,6 +851,7 @@ withAutoCompleteString:(NSString *)string
                                  }];
             
             while(waitingForSuggestions){
+                [NSThread sleepForTimeInterval:250];
                 if(self.isCancelled){
                     return;
                 }
