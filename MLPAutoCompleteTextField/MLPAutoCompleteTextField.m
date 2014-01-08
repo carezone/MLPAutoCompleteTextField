@@ -58,6 +58,7 @@ static NSString *kBorderStyleKeyPath = @"borderStyle";
 static NSString *kAutoCompleteTableViewHiddenKeyPath = @"autoCompleteTableView.hidden";
 static NSString *kBackgroundColorKeyPath = @"backgroundColor";
 static NSString *kDefaultAutoCompleteCellIdentifier = @"_DefaultAutoCompleteCellIdentifier";
+static NSString *kMaximumNumberOfAutoCompleteRowsKeyPath = @"maximumNumberOfAutoCompleteRows";
 @interface MLPAutoCompleteTextField ()
 @property (strong, readwrite) UITableView *autoCompleteTableView;
 @property (strong) NSArray *autoCompleteSuggestions;
@@ -137,8 +138,11 @@ static NSString *kDefaultAutoCompleteCellIdentifier = @"_DefaultAutoCompleteCell
     [self addObserver:self
            forKeyPath:kKeyboardAccessoryInputKeyPath
               options:NSKeyValueObservingOptionNew context:nil];
-    
-    
+
+    [self addObserver:self
+           forKeyPath:kMaximumNumberOfAutoCompleteRowsKeyPath
+              options:NSKeyValueObservingOptionNew context:nil];
+
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(textFieldDidChangeWithNotification:)
                                                  name:UITextFieldTextDidChangeNotification object:self];
@@ -152,6 +156,7 @@ static NSString *kDefaultAutoCompleteCellIdentifier = @"_DefaultAutoCompleteCell
     [self removeObserver:self forKeyPath:kAutoCompleteTableViewHiddenKeyPath];
     [self removeObserver:self forKeyPath:kBackgroundColorKeyPath];
     [self removeObserver:self forKeyPath:kKeyboardAccessoryInputKeyPath];
+    [self removeObserver:self forKeyPath:kMaximumNumberOfAutoCompleteRowsKeyPath];
 }
 
 
@@ -167,12 +172,8 @@ static NSString *kDefaultAutoCompleteCellIdentifier = @"_DefaultAutoCompleteCell
         }
     } else if ([keyPath isEqualToString:kBackgroundColorKeyPath]){
         [self styleAutoCompleteTableForBorderStyle:self.borderStyle];
-    } else if ([keyPath isEqualToString:kKeyboardAccessoryInputKeyPath]){
-        if(self.autoCompleteTableAppearsAsKeyboardAccessory){
-            [self setAutoCompleteTableForKeyboardAppearance];
-        } else {
-            [self setAutoCompleteTableForDropDownAppearance];
-        }
+    } else if ([keyPath isEqualToString:kKeyboardAccessoryInputKeyPath] || [keyPath isEqualToString:kMaximumNumberOfAutoCompleteRowsKeyPath]){
+        [self setAutoCompleteTableAppearance];
     }
 }
 
@@ -486,6 +487,15 @@ withAutoCompleteString:(NSString *)string
     self.autoCompleteFetchQueue.name = [NSString stringWithFormat:@"Fetch Queue %i", arc4random()];
 }
 
+
+- (void)setAutoCompleteTableAppearance
+{
+  if(self.autoCompleteTableAppearsAsKeyboardAccessory){
+    [self setAutoCompleteTableForKeyboardAppearance];
+  } else {
+    [self setAutoCompleteTableForDropDownAppearance];
+  }
+}
 
 - (void)setAutoCompleteTableForKeyboardAppearance
 {
