@@ -764,14 +764,17 @@ withAutoCompleteString:(NSString *)string
 + (CGRect)autoCompleteTableViewFrameForTextField:(MLPAutoCompleteTextField *)textField
                                  forNumberOfRows:(NSInteger)numberOfRows
 {
-    CGRect newTableViewFrame = [[self class] autoCompleteTableViewFrameForTextField:textField];
-    
-    CGFloat height = [[self class] autoCompleteTableHeightForTextField:textField
-                                                      withNumberOfRows:numberOfRows];
-    newTableViewFrame.size.height = height;
-    
-    if(!textField.autoCompleteTableAppearsAsKeyboardAccessory){
-        newTableViewFrame.size.height += textField.autoCompleteTableView.contentInset.top;
+    CGRect newTableViewFrame = CGRectZero;
+    CGFloat height = [[self class] autoCompleteTableHeightForTextField:textField withNumberOfRows:numberOfRows];
+
+    if(textField.autoCompleteTableAppearsAsKeyboardAccessory){
+        CGSize screenSize = [UIScreen mainScreen].bounds.size;
+        UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
+        newTableViewFrame.size.width = UIInterfaceOrientationIsPortrait(orientation) ? screenSize.width : screenSize.height;
+        newTableViewFrame.size.height = height;
+    } else {
+        newTableViewFrame = [[self class] autoCompleteTableViewFrameForTextField:textField];
+        newTableViewFrame.size.height = height + textField.autoCompleteTableView.contentInset.top;
     }
     
     return newTableViewFrame;
