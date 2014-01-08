@@ -795,6 +795,8 @@ withAutoCompleteString:(NSString *)string
 + (CGRect)autoCompleteTableViewFrameForTextField:(MLPAutoCompleteTextField *)textField
 {
     CGRect frame = textField.frame;
+    if (CGRectIsEmpty(frame)) return frame;
+
     frame.origin.y += textField.frame.size.height;
     frame.origin.x += textField.autoCompleteTableOriginOffset.width;
     frame.origin.y += textField.autoCompleteTableOriginOffset.height;
