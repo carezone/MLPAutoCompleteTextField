@@ -166,8 +166,13 @@ static NSString *kMaximumNumberOfAutoCompleteRowsKeyPath = @"maximumNumberOfAuto
         [self styleAutoCompleteTableForBorderStyle:self.borderStyle];
     } else if ([keyPath isEqualToString:kAutoCompleteTableViewHiddenKeyPath]) {
         if(self.autoCompleteTableView.hidden){
-            [self closeAutoCompleteTableView];
+            // Do not call closeAutoCompleteTableView here because keyboard accessory is shown only when the control becomes first responder.
+            // This is needed so that we can hide/shown the table view from the superview during interface orientation changes.
+            self.autoCompleteTableView.alpha = 0;
         } else {
+            [self setAutoCompleteTableAppearance];
+            NSInteger numberOfRows = [self.autoCompleteSuggestions count];
+            [self expandAutoCompleteTableViewForNumberOfRows:numberOfRows];
             [self.autoCompleteTableView reloadData];
         }
     } else if ([keyPath isEqualToString:kBackgroundColorKeyPath]){
