@@ -461,6 +461,7 @@ withAutoCompleteString:(NSString *)string
 - (void)closeAutoCompleteTableView
 {
     [self.autoCompleteTableView removeFromSuperview];
+    [self setInputAccessoryView:nil];
     [self restoreOriginalShadowProperties];
 }
 
