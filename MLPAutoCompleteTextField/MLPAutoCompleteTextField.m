@@ -326,7 +326,12 @@ withAutoCompleteString:(NSString *)string
 - (void)autoCompleteTermsDidSort:(NSArray *)completions
 {
     [self setAutoCompleteSuggestions:completions];
+    [self resetKeyboardAutoCompleteTableFrameForNumberOfRows:MIN(completions.count, self.maximumNumberOfAutoCompleteRows)];
     [self.autoCompleteTableView reloadData];
+
+    if (self.autoCompleteSuggestions.count > 0) {
+        [self.autoCompleteTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0] atScrollPosition:UITableViewRowAnimationTop animated:YES];
+    }
 }
 
 #pragma mark - AutoComplete Fetch Operation Delegate
@@ -504,7 +509,7 @@ withAutoCompleteString:(NSString *)string
 
 - (void)setAutoCompleteTableForKeyboardAppearance
 {
-    [self resetKeyboardAutoCompleteTableFrameForNumberOfRows:self.maximumNumberOfAutoCompleteRows];
+    [self resetKeyboardAutoCompleteTableFrameForNumberOfRows:MIN(self.autoCompleteSuggestions.count, self.maximumNumberOfAutoCompleteRows)];
     [self.autoCompleteTableView setContentInset:UIEdgeInsetsZero];
     [self.autoCompleteTableView setScrollIndicatorInsets:UIEdgeInsetsZero];
     [self setInputAccessoryView:self.autoCompleteTableView];
