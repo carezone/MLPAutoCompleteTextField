@@ -75,14 +75,8 @@ static NSString *kDefaultAutoCompleteCellIdentifier = @"_DefaultAutoCompleteCell
 
 #pragma mark - Init
 
-- (id)init
-{
-    self = [super init];
-    if (self) {
-        [self initialize];
-    }
-    return self;
-}
+// Note: Since initWithFrame: is the designated initializer for UIView class, do not override the init method.
+// Otherwise [self initialize] will get called twice, add we add self as key-value observer twice.
 
 - (id)initWithFrame:(CGRect)frame
 {
