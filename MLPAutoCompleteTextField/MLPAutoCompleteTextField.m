@@ -243,9 +243,7 @@ withAutoCompleteString:(NSString *)string
     if(self.applyBoldEffectToAutoCompleteSuggestions){
         BOOL attributedTextSupport = [cell.textLabel respondsToSelector:@selector(setAttributedText:)];
         NSAssert(attributedTextSupport, @"Attributed strings on UILabels are  not supported before iOS 6.0");
-        NSRange boldedRange = [[string lowercaseString]
-                               rangeOfString:[self.text lowercaseString]];
-        boldedString = [self boldedString:string withRange:boldedRange];
+        boldedString = [self boldedString:string withSubstrings:self.text separatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
     }
     
     id autoCompleteObject = self.autoCompleteSuggestions[indexPath.row];
@@ -808,7 +806,7 @@ withAutoCompleteString:(NSString *)string
     return frame;
 }
 
-- (NSAttributedString *)boldedString:(NSString *)string withRange:(NSRange)boldRange
+- (NSAttributedString *)boldedString:(NSString *)string withSubstrings:(NSString *)substrings separatedByCharactersInSet:(NSCharacterSet *)characterSet
 {
     UIFont *boldFont = [UIFont fontWithName:self.autoCompleteBoldFontName
                                        size:self.autoCompleteFontSize];
@@ -828,11 +826,22 @@ withAutoCompleteString:(NSString *)string
         secondAttributes = regularTextAttributes;
     }
     
-    NSMutableAttributedString *attributedText =
-    [[NSMutableAttributedString alloc] initWithString:string
-                                           attributes:firstAttributes];
-    [attributedText setAttributes:secondAttributes range:boldRange];
-    
+    NSMutableAttributedString *attributedText = [[NSMutableAttributedString alloc] initWithString:string attributes:firstAttributes];
+
+    substrings = [substrings stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    NSArray *components = [substrings componentsSeparatedByCharactersInSet:characterSet];
+
+    for (NSString *component in components){
+        NSRange range = NSMakeRange(0, string.length);
+        while(range.location != NSNotFound){
+            range = [string rangeOfString:component options:NSCaseInsensitiveSearch range:range];
+            if (range.location != NSNotFound){
+                [attributedText setAttributes:secondAttributes range:range];
+                range = NSMakeRange(range.location + range.length, string.length - (range.location + range.length));
+            }
+        }
+    }
+
     return attributedText;
 }
 
