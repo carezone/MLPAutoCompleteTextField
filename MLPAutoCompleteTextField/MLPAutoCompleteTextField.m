@@ -17,11 +17,10 @@
 #import "NSString+Levenshtein.h"
 #import <QuartzCore/QuartzCore.h>
 
-
 static NSString *kSortInputStringKey = @"sortInputString";
 static NSString *kSortEditDistancesKey = @"editDistances";
 static NSString *kSortObjectKey = @"sortObject";
-static NSString *kKeyboardAccessoryInputKeyPath = @"autoCompleteTableAppearsAsKeyboardAccessory";
+static NSString *kKeyboardAccessoryInputKeyPath = @"autoCompleteAppearsAsKeyboardAccessory";
 const NSTimeInterval DefaultAutoCompleteRequestDelay = 0.1;
 
 @interface MLPAutoCompleteSortOperation: NSOperation
@@ -39,8 +38,10 @@ const NSTimeInterval DefaultAutoCompleteRequestDelay = 0.1;
                     withPossibleStrings:(NSArray *)possibleTerms;
 @end
 
+
 static NSString *kFetchedTermsKey = @"terms";
 static NSString *kFetchedStringKey = @"fetchInputString";
+
 @interface MLPAutoCompleteFetchOperation: NSOperation
 @property (strong) NSString *incompleteString;
 @property (strong) MLPAutoCompleteTextField *textField;
@@ -55,12 +56,13 @@ static NSString *kFetchedStringKey = @"fetchInputString";
 
 
 static NSString *kBorderStyleKeyPath = @"borderStyle";
-static NSString *kAutoCompleteTableViewHiddenKeyPath = @"autoCompleteTableView.hidden";
+static NSString *kAutoCompleteCollectionViewHiddenKeyPath = @"autoCompleteCollectionView.hidden";
 static NSString *kBackgroundColorKeyPath = @"backgroundColor";
 static NSString *kDefaultAutoCompleteCellIdentifier = @"_DefaultAutoCompleteCellIdentifier";
 static NSString *kMaximumNumberOfAutoCompleteRowsKeyPath = @"maximumNumberOfAutoCompleteRows";
+
 @interface MLPAutoCompleteTextField ()
-@property (strong, readwrite) UITableView *autoCompleteTableView;
+@property (strong, readwrite) UITableView *autoCompleteCollectionView;
 @property (strong) NSArray *autoCompleteSuggestions;
 @property (strong) NSOperationQueue *autoCompleteSortQueue;
 @property (strong) NSOperationQueue *autoCompleteFetchQueue;
@@ -69,7 +71,6 @@ static NSString *kMaximumNumberOfAutoCompleteRowsKeyPath = @"maximumNumberOfAuto
 @property (assign) CGSize originalShadowOffset;
 @property (assign) CGFloat originalShadowOpacity;
 @end
-
 
 
 @implementation MLPAutoCompleteTextField
@@ -100,7 +101,7 @@ static NSString *kMaximumNumberOfAutoCompleteRowsKeyPath = @"maximumNumberOfAuto
 
 - (void)dealloc
 {
-    [self closeAutoCompleteTableView];
+    [self closeAutoCompleteCollectionView];
     [self stopObservingKeyPathsAndNotifications];
 }
 
@@ -110,10 +111,10 @@ static NSString *kMaximumNumberOfAutoCompleteRowsKeyPath = @"maximumNumberOfAuto
     
     [self setDefaultValuesForVariables];
     
-    UITableView *newTableView = [[self class] newAutoCompleteTableViewForTextField:self];
-    [self setAutoCompleteTableView:newTableView];
+    UITableView *newCollectionView = [[self class] newAutoCompleteCollectionViewForTextField:self];
+    [self setAutoCompleteCollectionView:newCollectionView];
     
-    [self styleAutoCompleteTableForBorderStyle:self.borderStyle];
+    [self styleAutoCompleteViewForBorderStyle:self.borderStyle];
 }
 
 
@@ -127,7 +128,7 @@ static NSString *kMaximumNumberOfAutoCompleteRowsKeyPath = @"maximumNumberOfAuto
     
     
     [self addObserver:self
-           forKeyPath:kAutoCompleteTableViewHiddenKeyPath
+           forKeyPath:kAutoCompleteCollectionViewHiddenKeyPath
               options:NSKeyValueObservingOptionNew context:nil];
     
     
@@ -153,7 +154,7 @@ static NSString *kMaximumNumberOfAutoCompleteRowsKeyPath = @"maximumNumberOfAuto
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     
     [self removeObserver:self forKeyPath:kBorderStyleKeyPath];
-    [self removeObserver:self forKeyPath:kAutoCompleteTableViewHiddenKeyPath];
+    [self removeObserver:self forKeyPath:kAutoCompleteCollectionViewHiddenKeyPath];
     [self removeObserver:self forKeyPath:kBackgroundColorKeyPath];
     [self removeObserver:self forKeyPath:kKeyboardAccessoryInputKeyPath];
     [self removeObserver:self forKeyPath:kMaximumNumberOfAutoCompleteRowsKeyPath];
@@ -163,22 +164,22 @@ static NSString *kMaximumNumberOfAutoCompleteRowsKeyPath = @"maximumNumberOfAuto
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
     if([keyPath isEqualToString:kBorderStyleKeyPath]) {
-        [self styleAutoCompleteTableForBorderStyle:self.borderStyle];
-    } else if ([keyPath isEqualToString:kAutoCompleteTableViewHiddenKeyPath]) {
-        if(self.autoCompleteTableView.hidden){
-            // Do not call closeAutoCompleteTableView here because keyboard accessory is shown only when the control becomes first responder.
-            // This is needed so that we can hide/shown the table view from the superview during interface orientation changes.
-            self.autoCompleteTableView.alpha = 0;
+        [self styleAutoCompleteViewForBorderStyle:self.borderStyle];
+    } else if ([keyPath isEqualToString:kAutoCompleteCollectionViewHiddenKeyPath]) {
+        if(self.autoCompleteCollectionView.hidden){
+            // Do not call closeAutoCompleteCollectionView here because keyboard accessory is shown only when the control becomes
+            // first responder. This is needed so that we can hide/shown the table view from the superview during orientation changes.
+            self.autoCompleteCollectionView.alpha = 0;
         } else {
-            [self setAutoCompleteTableAppearance];
+            [self setAutoCompleteViewAppearance];
             NSInteger numberOfRows = [self.autoCompleteSuggestions count];
-            [self expandAutoCompleteTableViewForNumberOfRows:numberOfRows];
-            [self.autoCompleteTableView reloadData];
+            [self expandAutoCompleteCollectionViewForNumberOfRows:numberOfRows];
+            [self.autoCompleteCollectionView reloadData];
         }
     } else if ([keyPath isEqualToString:kBackgroundColorKeyPath]){
-        [self styleAutoCompleteTableForBorderStyle:self.borderStyle];
+        [self styleAutoCompleteViewForBorderStyle:self.borderStyle];
     } else if ([keyPath isEqualToString:kKeyboardAccessoryInputKeyPath] || [keyPath isEqualToString:kMaximumNumberOfAutoCompleteRowsKeyPath]){
-        [self setAutoCompleteTableAppearance];
+        [self setAutoCompleteViewAppearance];
     }
 }
 
@@ -187,7 +188,7 @@ static NSString *kMaximumNumberOfAutoCompleteRowsKeyPath = @"maximumNumberOfAuto
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     NSInteger numberOfRows = [self.autoCompleteSuggestions count];
-    [self expandAutoCompleteTableViewForNumberOfRows:numberOfRows];
+    [self expandAutoCompleteCollectionViewForNumberOfRows:numberOfRows];
     return numberOfRows;
 }
 
@@ -199,14 +200,13 @@ static NSString *kMaximumNumberOfAutoCompleteRowsKeyPath = @"maximumNumberOfAuto
     if(!self.reuseIdentifier){
         cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier];
         if (cell == nil) {
-            cell = [self autoCompleteTableViewCellWithReuseIdentifier:cellIdentifier];
+            cell = [self autoCompleteCollectionViewCellWithReuseIdentifier:cellIdentifier];
         }
     } else {
         cell = [tableView dequeueReusableCellWithIdentifier:self.reuseIdentifier];
     }
     NSAssert(cell, @"Unable to create cell for autocomplete table");
-    
-    
+
     id autoCompleteObject = self.autoCompleteSuggestions[indexPath.row];
     NSString *suggestedString;
     if([autoCompleteObject isKindOfClass:[NSString class]]){
@@ -216,15 +216,13 @@ static NSString *kMaximumNumberOfAutoCompleteRowsKeyPath = @"maximumNumberOfAuto
     } else {
         NSAssert(0, @"Autocomplete suggestions must either be NSString or objects conforming to the MLPAutoCompletionObject protocol.");
     }
-    
-    
+
     [self configureCell:cell atIndexPath:indexPath withAutoCompleteString:suggestedString];
-    
-    
+
     return cell;
 }
 
-- (UITableViewCell *)autoCompleteTableViewCellWithReuseIdentifier:(NSString *)identifier
+- (UITableViewCell *)autoCompleteCollectionViewCellWithReuseIdentifier:(NSString *)identifier
 {
     UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
                                                    reuseIdentifier:identifier];
@@ -238,7 +236,6 @@ static NSString *kMaximumNumberOfAutoCompleteRowsKeyPath = @"maximumNumberOfAuto
           atIndexPath:(NSIndexPath *)indexPath
 withAutoCompleteString:(NSString *)string
 {
-    
     NSAttributedString *boldedString = nil;
     if(self.applyBoldEffectToAutoCompleteSuggestions){
         BOOL attributedTextSupport = [cell.textLabel respondsToSelector:@selector(setAttributedText:)];
@@ -274,14 +271,14 @@ withAutoCompleteString:(NSString *)string
         [cell.textLabel setFont:[UIFont fontWithName:self.font.fontName size:self.autoCompleteFontSize]];
     }
     
-    if(self.autoCompleteTableCellTextColor){
-        [cell.textLabel setTextColor:self.autoCompleteTableCellTextColor];
+    if(self.autoCompleteCellTextColor){
+        [cell.textLabel setTextColor:self.autoCompleteCellTextColor];
     }
 }
 
 - (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    [cell setBackgroundColor:self.autoCompleteTableCellBackgroundColor];
+    [cell setBackgroundColor:self.autoCompleteCellBackgroundColor];
 }
 
 #pragma mark - TableView Delegate
@@ -293,8 +290,8 @@ withAutoCompleteString:(NSString *)string
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if(!self.autoCompleteTableAppearsAsKeyboardAccessory){
-        [self closeAutoCompleteTableView];
+    if(!self.autoCompleteAppearsAsKeyboardAccessory){
+        [self closeAutoCompleteCollectionView];
     }
     
     UITableViewCell *selectedCell = [tableView cellForRowAtIndexPath:indexPath];
@@ -320,15 +317,14 @@ withAutoCompleteString:(NSString *)string
 
 #pragma mark - AutoComplete Sort Operation Delegate
 
-
 - (void)autoCompleteTermsDidSort:(NSArray *)completions
 {
     [self setAutoCompleteSuggestions:completions];
-    [self resetKeyboardAutoCompleteTableFrameForNumberOfRows:MIN(completions.count, self.maximumNumberOfAutoCompleteRows)];
-    [self.autoCompleteTableView reloadData];
+    [self resetKeyboardAutoCompleteViewFrameForNumberOfRows:MIN(completions.count, self.maximumNumberOfAutoCompleteRows)];
+    [self.autoCompleteCollectionView reloadData];
 
     if (self.autoCompleteSuggestions.count > 0) {
-        [self.autoCompleteTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0] atScrollPosition:UITableViewRowAnimationTop animated:YES];
+        [self.autoCompleteCollectionView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0] atScrollPosition:UITableViewRowAnimationTop animated:YES];
     }
 }
 
@@ -371,8 +367,8 @@ withAutoCompleteString:(NSString *)string
 {
     [self saveCurrentShadowProperties];
     
-    if(self.showAutoCompleteTableWhenEditingBegins ||
-       self.autoCompleteTableAppearsAsKeyboardAccessory){
+    if(self.showAutoCompleteWhenEditingBegins ||
+       self.autoCompleteAppearsAsKeyboardAccessory){
         [self fetchAutoCompleteSuggestions];
     }
     
@@ -387,8 +383,8 @@ withAutoCompleteString:(NSString *)string
 - (BOOL)resignFirstResponder
 {
     [self restoreOriginalShadowProperties];
-    if(!self.autoCompleteTableAppearsAsKeyboardAccessory){
-        [self closeAutoCompleteTableView];
+    if(!self.autoCompleteAppearsAsKeyboardAccessory){
+        [self closeAutoCompleteCollectionView];
     }
     return [super resignFirstResponder];
 }
@@ -397,7 +393,7 @@ withAutoCompleteString:(NSString *)string
 
 #pragma mark - Open/Close Actions
 
-- (void)expandAutoCompleteTableViewForNumberOfRows:(NSInteger)numberOfRows
+- (void)expandAutoCompleteCollectionViewForNumberOfRows:(NSInteger)numberOfRows
 {
     NSAssert(numberOfRows >= 0,
              @"Number of rows given for auto complete table was negative, this is impossible.");
@@ -406,59 +402,59 @@ withAutoCompleteString:(NSString *)string
         return;
     }
     
-    if(self.autoCompleteTableAppearsAsKeyboardAccessory){
-        [self expandKeyboardAutoCompleteTableForNumberOfRows:numberOfRows];
+    if(self.autoCompleteAppearsAsKeyboardAccessory){
+        [self expandKeyboardAutoCompleteViewForNumberOfRows:numberOfRows];
     } else {
-        [self expandDropDownAutoCompleteTableForNumberOfRows:numberOfRows];
+        [self expandDropDownAutoCompleteViewForNumberOfRows:numberOfRows];
     }
     
 }
 
-- (void)expandKeyboardAutoCompleteTableForNumberOfRows:(NSInteger)numberOfRows
+- (void)expandKeyboardAutoCompleteViewForNumberOfRows:(NSInteger)numberOfRows
 {
-    if(numberOfRows && (self.autoCompleteTableViewHidden == NO)){
-        [self.autoCompleteTableView setAlpha:1];
+    if(numberOfRows && (self.autoCompleteViewHidden == NO)){
+        [self.autoCompleteCollectionView setAlpha:1];
     } else {
-        [self.autoCompleteTableView setAlpha:0];
+        [self.autoCompleteCollectionView setAlpha:0];
     }
 }
 
-- (void)expandDropDownAutoCompleteTableForNumberOfRows:(NSInteger)numberOfRows
+- (void)expandDropDownAutoCompleteViewForNumberOfRows:(NSInteger)numberOfRows
 {
-    [self resetDropDownAutoCompleteTableFrameForNumberOfRows:numberOfRows];
+    [self resetDropDownAutoCompleteViewFrameForNumberOfRows:numberOfRows];
     
     
-    if(numberOfRows && (self.autoCompleteTableViewHidden == NO)){
-        [self.autoCompleteTableView setAlpha:1];
+    if(numberOfRows && (self.autoCompleteViewHidden == NO)){
+        [self.autoCompleteCollectionView setAlpha:1];
         
-        if(!self.autoCompleteTableView.superview){
+        if(!self.autoCompleteCollectionView.superview){
             if([self.autoCompleteDelegate
-                respondsToSelector:@selector(autoCompleteTextField:willShowAutoCompleteTableView:)]){
+                respondsToSelector:@selector(autoCompleteTextField:willShowAutoCompleteCollectionView:)]){
                 [self.autoCompleteDelegate autoCompleteTextField:self
-                                   willShowAutoCompleteTableView:self.autoCompleteTableView];
+                                   willShowAutoCompleteCollectionView:self.autoCompleteCollectionView];
             }
         }
         
         [self.superview bringSubviewToFront:self];
-        [self.superview insertSubview:self.autoCompleteTableView
+        [self.superview insertSubview:self.autoCompleteCollectionView
                          belowSubview:self];
-        [self.autoCompleteTableView setUserInteractionEnabled:YES];
-        if(self.showTextFieldDropShadowWhenAutoCompleteTableIsOpen){
+        [self.autoCompleteCollectionView setUserInteractionEnabled:YES];
+        if(self.showTextFieldDropShadowWhenAutoCompleteIsOpen){
             [self.layer setShadowColor:[[UIColor blackColor] CGColor]];
             [self.layer setShadowOffset:CGSizeMake(0, 1)];
             [self.layer setShadowOpacity:0.35];
         }
     } else {
-        [self closeAutoCompleteTableView];
+        [self closeAutoCompleteCollectionView];
         [self restoreOriginalShadowProperties];
-        [self.autoCompleteTableView.layer setShadowOpacity:0.0];
+        [self.autoCompleteCollectionView.layer setShadowOpacity:0.0];
     }
 }
 
 
-- (void)closeAutoCompleteTableView
+- (void)closeAutoCompleteCollectionView
 {
-    [self.autoCompleteTableView removeFromSuperview];
+    [self.autoCompleteCollectionView removeFromSuperview];
     [self setInputAccessoryView:nil];
     [self restoreOriginalShadowProperties];
 }
@@ -474,12 +470,12 @@ withAutoCompleteString:(NSString *)string
     [self setAutoCompleteFetchRequestDelay:DefaultAutoCompleteRequestDelay];
     [self setSortAutoCompleteSuggestionsByClosestMatch:YES];
     [self setApplyBoldEffectToAutoCompleteSuggestions:YES];
-    [self setShowTextFieldDropShadowWhenAutoCompleteTableIsOpen:YES];
+    [self setShowTextFieldDropShadowWhenAutoCompleteIsOpen:YES];
     [self setAutoCompleteRowHeight:40];
     [self setAutoCompleteFontSize:13];
     [self setMaximumNumberOfAutoCompleteRows:3];
     
-    [self setAutoCompleteTableCellBackgroundColor:[UIColor clearColor]];
+    [self setAutoCompleteCellBackgroundColor:[UIColor clearColor]];
     
     UIFont *regularFont = [UIFont systemFontOfSize:13];
     [self setAutoCompleteRegularFontName:regularFont.fontName];
@@ -497,130 +493,130 @@ withAutoCompleteString:(NSString *)string
 }
 
 
-- (void)setAutoCompleteTableAppearance
+- (void)setAutoCompleteViewAppearance
 {
-  if(self.autoCompleteTableAppearsAsKeyboardAccessory){
-    [self setAutoCompleteTableForKeyboardAppearance];
+  if(self.autoCompleteAppearsAsKeyboardAccessory){
+    [self setAutoCompleteViewForKeyboardAppearance];
   } else {
-    [self setAutoCompleteTableForDropDownAppearance];
+    [self setAutoCompleteViewForDropDownAppearance];
   }
 }
 
-- (void)setAutoCompleteTableForKeyboardAppearance
+- (void)setAutoCompleteViewForKeyboardAppearance
 {
-    [self resetKeyboardAutoCompleteTableFrameForNumberOfRows:MIN(self.autoCompleteSuggestions.count, self.maximumNumberOfAutoCompleteRows)];
-    [self.autoCompleteTableView setContentInset:UIEdgeInsetsZero];
-    [self.autoCompleteTableView setScrollIndicatorInsets:UIEdgeInsetsZero];
-    [self setInputAccessoryView:self.autoCompleteTableView];
+    [self resetKeyboardAutoCompleteViewFrameForNumberOfRows:MIN(self.autoCompleteSuggestions.count, self.maximumNumberOfAutoCompleteRows)];
+    [self.autoCompleteCollectionView setContentInset:UIEdgeInsetsZero];
+    [self.autoCompleteCollectionView setScrollIndicatorInsets:UIEdgeInsetsZero];
+    [self setInputAccessoryView:self.autoCompleteCollectionView];
 }
 
-- (void)setAutoCompleteTableForDropDownAppearance
+- (void)setAutoCompleteViewForDropDownAppearance
 {
-    [self resetDropDownAutoCompleteTableFrameForNumberOfRows:self.maximumNumberOfAutoCompleteRows];
-    [self.autoCompleteTableView setContentInset:self.autoCompleteContentInsets];
-    [self.autoCompleteTableView setScrollIndicatorInsets:self.autoCompleteScrollIndicatorInsets];
+    [self resetDropDownAutoCompleteViewFrameForNumberOfRows:self.maximumNumberOfAutoCompleteRows];
+    [self.autoCompleteCollectionView setContentInset:self.autoCompleteContentInsets];
+    [self.autoCompleteCollectionView setScrollIndicatorInsets:self.autoCompleteScrollIndicatorInsets];
     [self setInputAccessoryView:nil];
 }
 
 
 
-- (void)setAutoCompleteTableViewHidden:(BOOL)autoCompleteTableViewHidden
+- (void)setAutoCompleteViewHidden:(BOOL)autoCompleteCollectionViewHidden
 {
-    [self.autoCompleteTableView setHidden:autoCompleteTableViewHidden];
+    [self.autoCompleteCollectionView setHidden:autoCompleteCollectionViewHidden];
 }
 
-- (void)setAutoCompleteTableBackgroundColor:(UIColor *)autoCompleteTableBackgroundColor
+- (void)setAutoCompleteBackgroundColor:(UIColor *)autoCompleteBackgroundColor
 {
-    [self.autoCompleteTableView setBackgroundColor:autoCompleteTableBackgroundColor];
-    _autoCompleteTableBackgroundColor = autoCompleteTableBackgroundColor;
+    [self.autoCompleteCollectionView setBackgroundColor:autoCompleteBackgroundColor];
+    _autoCompleteBackgroundColor = autoCompleteBackgroundColor;
 }
 
-- (void)setAutoCompleteTableBorderWidth:(CGFloat)autoCompleteTableBorderWidth
+- (void)setAutoCompleteBorderWidth:(CGFloat)autoCompleteBorderWidth
 {
-    [self.autoCompleteTableView.layer setBorderWidth:autoCompleteTableBorderWidth];
-    _autoCompleteTableBorderWidth = autoCompleteTableBorderWidth;
+    [self.autoCompleteCollectionView.layer setBorderWidth:autoCompleteBorderWidth];
+    _autoCompleteBorderWidth = autoCompleteBorderWidth;
 }
 
-- (void)setAutoCompleteTableBorderColor:(UIColor *)autoCompleteTableBorderColor
+- (void)setAutoCompleteBorderColor:(UIColor *)autoCompleteBorderColor
 {
-    [self.autoCompleteTableView.layer setBorderColor:[autoCompleteTableBorderColor CGColor]];
-    _autoCompleteTableBorderColor = autoCompleteTableBorderColor;
+    [self.autoCompleteCollectionView.layer setBorderColor:[autoCompleteBorderColor CGColor]];
+    _autoCompleteBorderColor = autoCompleteBorderColor;
 }
 
 - (void)setAutoCompleteContentInsets:(UIEdgeInsets)autoCompleteContentInsets
 {
-    [self.autoCompleteTableView setContentInset:autoCompleteContentInsets];
+    [self.autoCompleteCollectionView setContentInset:autoCompleteContentInsets];
     _autoCompleteContentInsets = autoCompleteContentInsets;
 }
 
 - (void)setAutoCompleteScrollIndicatorInsets:(UIEdgeInsets)autoCompleteScrollIndicatorInsets
 {
-    [self.autoCompleteTableView setScrollIndicatorInsets:autoCompleteScrollIndicatorInsets];
+    [self.autoCompleteCollectionView setScrollIndicatorInsets:autoCompleteScrollIndicatorInsets];
     _autoCompleteScrollIndicatorInsets = autoCompleteScrollIndicatorInsets;
 }
 
-- (void)resetKeyboardAutoCompleteTableFrameForNumberOfRows:(NSInteger)numberOfRows
+- (void)resetKeyboardAutoCompleteViewFrameForNumberOfRows:(NSInteger)numberOfRows
 {
-    [self.autoCompleteTableView.layer setCornerRadius:0];
+    [self.autoCompleteCollectionView.layer setCornerRadius:0];
     
-    CGRect newAutoCompleteTableViewFrame = [[self class]
-                                            autoCompleteTableViewFrameForTextField:self
+    CGRect newAutoCompleteCollectionViewFrame = [[self class]
+                                            autoCompleteCollectionViewFrameForTextField:self
                                             forNumberOfRows:numberOfRows];
-    [self.autoCompleteTableView setFrame:newAutoCompleteTableViewFrame];
+    [self.autoCompleteCollectionView setFrame:newAutoCompleteCollectionViewFrame];
     
-    [self.autoCompleteTableView setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
-    [self.autoCompleteTableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
+    [self.autoCompleteCollectionView setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
+    [self.autoCompleteCollectionView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
 }
 
-- (void)resetDropDownAutoCompleteTableFrameForNumberOfRows:(NSInteger)numberOfRows
+- (void)resetDropDownAutoCompleteViewFrameForNumberOfRows:(NSInteger)numberOfRows
 {
-    [self.autoCompleteTableView.layer setCornerRadius:self.autoCompleteTableCornerRadius];
+    [self.autoCompleteCollectionView.layer setCornerRadius:self.autoCompleteCornerRadius];
     
-    CGRect newAutoCompleteTableViewFrame = [[self class]
-                                            autoCompleteTableViewFrameForTextField:self
+    CGRect newAutoCompleteCollectionViewFrame = [[self class]
+                                            autoCompleteCollectionViewFrameForTextField:self
                                             forNumberOfRows:numberOfRows];
     
-    [self.autoCompleteTableView setFrame:newAutoCompleteTableViewFrame];
-    [self.autoCompleteTableView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
+    [self.autoCompleteCollectionView setFrame:newAutoCompleteCollectionViewFrame];
+    [self.autoCompleteCollectionView scrollRectToVisible:CGRectMake(0, 0, 1, 1) animated:NO];
 }
 
 - (void)registerAutoCompleteCellNib:(UINib *)nib forCellReuseIdentifier:(NSString *)reuseIdentifier
 {
-    NSAssert(self.autoCompleteTableView, @"Must have an autoCompleteTableView to register cells to.");
+    NSAssert(self.autoCompleteCollectionView, @"Must have an autoCompleteCollectionView to register cells to.");
     
     if(self.reuseIdentifier){
         [self unregisterAutoCompleteCellForReuseIdentifier:self.reuseIdentifier];
     }
     
-    [self.autoCompleteTableView registerNib:nib forCellReuseIdentifier:reuseIdentifier];
+    [self.autoCompleteCollectionView registerNib:nib forCellReuseIdentifier:reuseIdentifier];
     [self setReuseIdentifier:reuseIdentifier];
 }
 
 
 - (void)registerAutoCompleteCellClass:(Class)cellClass forCellReuseIdentifier:(NSString *)reuseIdentifier
 {
-    NSAssert(self.autoCompleteTableView, @"Must have an autoCompleteTableView to register cells to.");
+    NSAssert(self.autoCompleteCollectionView, @"Must have an autoCompleteCollectionView to register cells to.");
     if(self.reuseIdentifier){
         [self unregisterAutoCompleteCellForReuseIdentifier:self.reuseIdentifier];
     }
-    BOOL classSettingSupported = [self.autoCompleteTableView respondsToSelector:@selector(registerClass:forCellReuseIdentifier:)];
+    BOOL classSettingSupported = [self.autoCompleteCollectionView respondsToSelector:@selector(registerClass:forCellReuseIdentifier:)];
     NSAssert(classSettingSupported, @"Unable to set class for cell for autocomplete table, in iOS 5.0 you can set a custom NIB for a reuse identifier to get similar functionality.");
-    [self.autoCompleteTableView registerClass:cellClass forCellReuseIdentifier:reuseIdentifier];
+    [self.autoCompleteCollectionView registerClass:cellClass forCellReuseIdentifier:reuseIdentifier];
     [self setReuseIdentifier:reuseIdentifier];
 }
 
 
 - (void)unregisterAutoCompleteCellForReuseIdentifier:(NSString *)reuseIdentifier
 {
-    [self.autoCompleteTableView registerNib:nil forCellReuseIdentifier:reuseIdentifier];
+    [self.autoCompleteCollectionView registerNib:nil forCellReuseIdentifier:reuseIdentifier];
 }
 
 
-- (void)styleAutoCompleteTableForBorderStyle:(UITextBorderStyle)borderStyle
+- (void)styleAutoCompleteViewForBorderStyle:(UITextBorderStyle)borderStyle
 {
-    if([self.autoCompleteDelegate respondsToSelector:@selector(autoCompleteTextField:shouldStyleAutoCompleteTableView:forBorderStyle:)]){
+    if([self.autoCompleteDelegate respondsToSelector:@selector(autoCompleteTextField:shouldStyleAutoCompleteCollectionView:forBorderStyle:)]){
         if(![self.autoCompleteDelegate autoCompleteTextField:self
-                            shouldStyleAutoCompleteTableView:self.autoCompleteTableView
+                            shouldStyleAutoCompleteCollectionView:self.autoCompleteCollectionView
                                               forBorderStyle:borderStyle]){
             return;
         }
@@ -628,76 +624,76 @@ withAutoCompleteString:(NSString *)string
     
     switch (borderStyle) {
         case UITextBorderStyleRoundedRect:
-            [self setRoundedRectStyleForAutoCompleteTableView];
+            [self setRoundedRectStyleForAutoCompleteCollectionView];
             break;
         case UITextBorderStyleBezel:
         case UITextBorderStyleLine:
-            [self setLineStyleForAutoCompleteTableView];
+            [self setLineStyleForAutoCompleteCollectionView];
             break;
         case UITextBorderStyleNone:
-            [self setNoneStyleForAutoCompleteTableView];
+            [self setNoneStyleForAutoCompleteCollectionView];
             break;
         default:
             break;
     }
 }
 
-- (void)setRoundedRectStyleForAutoCompleteTableView
+- (void)setRoundedRectStyleForAutoCompleteCollectionView
 {
-    [self setAutoCompleteTableCornerRadius:8.0];
-    [self setAutoCompleteTableOriginOffset:CGSizeMake(0, -18)];
+    [self setAutoCompleteCornerRadius:8.0];
+    [self setAutoCompleteOriginOffset:CGSizeMake(0, -18)];
     [self setAutoCompleteScrollIndicatorInsets:UIEdgeInsetsMake(18, 0, 0, 0)];
     [self setAutoCompleteContentInsets:UIEdgeInsetsMake(18, 0, 0, 0)];
     
     if(self.backgroundColor == [UIColor clearColor]){
-        [self setAutoCompleteTableBackgroundColor:[UIColor whiteColor]];
+        [self setAutoCompleteBackgroundColor:[UIColor whiteColor]];
     } else {
-        [self setAutoCompleteTableBackgroundColor:self.backgroundColor];
+        [self setAutoCompleteBackgroundColor:self.backgroundColor];
     }
 }
 
-- (void)setLineStyleForAutoCompleteTableView
+- (void)setLineStyleForAutoCompleteCollectionView
 {
-    [self setAutoCompleteTableCornerRadius:0.0];
-    [self setAutoCompleteTableOriginOffset:CGSizeZero];
+    [self setAutoCompleteCornerRadius:0.0];
+    [self setAutoCompleteOriginOffset:CGSizeZero];
     [self setAutoCompleteScrollIndicatorInsets:UIEdgeInsetsZero];
     [self setAutoCompleteContentInsets:UIEdgeInsetsZero];
-    [self setAutoCompleteTableBorderWidth:1.0];
-    [self setAutoCompleteTableBorderColor:[UIColor colorWithWhite:0.0 alpha:0.5]];
+    [self setAutoCompleteBorderWidth:1.0];
+    [self setAutoCompleteBorderColor:[UIColor colorWithWhite:0.0 alpha:0.5]];
     
     if(self.backgroundColor == [UIColor clearColor]){
-        [self setAutoCompleteTableBackgroundColor:[UIColor whiteColor]];
+        [self setAutoCompleteBackgroundColor:[UIColor whiteColor]];
     } else {
-        [self setAutoCompleteTableBackgroundColor:self.backgroundColor];
+        [self setAutoCompleteBackgroundColor:self.backgroundColor];
     }
 }
 
-- (void)setNoneStyleForAutoCompleteTableView
+- (void)setNoneStyleForAutoCompleteCollectionView
 {
-    [self setAutoCompleteTableCornerRadius:8.0];
-    [self setAutoCompleteTableOriginOffset:CGSizeMake(0, 7)];
+    [self setAutoCompleteCornerRadius:8.0];
+    [self setAutoCompleteOriginOffset:CGSizeMake(0, 7)];
     [self setAutoCompleteScrollIndicatorInsets:UIEdgeInsetsZero];
     [self setAutoCompleteContentInsets:UIEdgeInsetsZero];
-    [self setAutoCompleteTableBorderWidth:1.0];
+    [self setAutoCompleteBorderWidth:1.0];
     
     
     UIColor *lightBlueColor = [UIColor colorWithRed:181/255.0
                                               green:204/255.0
                                                blue:255/255.0
                                               alpha:1.0];
-    [self setAutoCompleteTableBorderColor:lightBlueColor];
+    [self setAutoCompleteBorderColor:lightBlueColor];
     
     
     UIColor *blueTextColor = [UIColor colorWithRed:23/255.0
                                              green:119/255.0
                                               blue:206/255.0
                                              alpha:1.0];
-    [self setAutoCompleteTableCellTextColor:blueTextColor];
+    [self setAutoCompleteCellTextColor:blueTextColor];
     
     if(self.backgroundColor == [UIColor clearColor]){
-        [self setAutoCompleteTableBackgroundColor:[UIColor whiteColor]];
+        [self setAutoCompleteBackgroundColor:[UIColor whiteColor]];
     } else {
-        [self setAutoCompleteTableBackgroundColor:self.backgroundColor];
+        [self setAutoCompleteBackgroundColor:self.backgroundColor];
     }
 }
 
@@ -718,17 +714,16 @@ withAutoCompleteString:(NSString *)string
 
 #pragma mark - Getters
 
-- (BOOL)autoCompleteTableViewHidden
+- (BOOL)autoCompleteViewHidden
 {
-    return self.autoCompleteTableView.hidden;
+    return self.autoCompleteCollectionView.hidden;
 }
-
 
 - (void)fetchAutoCompleteSuggestions
 {
     
-    if(self.disableAutoCompleteTableUserInteractionWhileFetching){
-        [self.autoCompleteTableView setUserInteractionEnabled:NO];
+    if(self.disableAutoCompleteUserInteractionWhileFetching){
+        [self.autoCompleteCollectionView setUserInteractionEnabled:NO];
     }
     
     [self.autoCompleteFetchQueue cancelAllOperations];
@@ -741,44 +736,42 @@ withAutoCompleteString:(NSString *)string
     [self.autoCompleteFetchQueue addOperation:fetchOperation];
 }
 
-
-
 #pragma mark - Factory Methods
 
-+ (UITableView *)newAutoCompleteTableViewForTextField:(MLPAutoCompleteTextField *)textField
++ (UITableView *)newAutoCompleteCollectionViewForTextField:(MLPAutoCompleteTextField *)textField
 {
-    CGRect dropDownTableFrame = [[self class] autoCompleteTableViewFrameForTextField:textField];
+    CGRect dropDownTableFrame = [[self class] autoCompleteCollectionViewFrameForTextField:textField];
     
-    UITableView *newTableView = [[UITableView alloc] initWithFrame:dropDownTableFrame
+    UITableView *newCollectionView = [[UITableView alloc] initWithFrame:dropDownTableFrame
                                                              style:UITableViewStylePlain];
-    [newTableView setDelegate:textField];
-    [newTableView setDataSource:textField];
-    [newTableView setScrollEnabled:YES];
-    [newTableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+    [newCollectionView setDelegate:textField];
+    [newCollectionView setDataSource:textField];
+    [newCollectionView setScrollEnabled:YES];
+    [newCollectionView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     
-    return newTableView;
+    return newCollectionView;
 }
 
-+ (CGRect)autoCompleteTableViewFrameForTextField:(MLPAutoCompleteTextField *)textField
++ (CGRect)autoCompleteCollectionViewFrameForTextField:(MLPAutoCompleteTextField *)textField
                                  forNumberOfRows:(NSInteger)numberOfRows
 {
-    CGRect newTableViewFrame = CGRectZero;
-    CGFloat height = [[self class] autoCompleteTableHeightForTextField:textField withNumberOfRows:numberOfRows];
+    CGRect newCollectionViewFrame = CGRectZero;
+    CGFloat height = [[self class] autoCompleteViewHeightForTextField:textField withNumberOfRows:numberOfRows];
 
-    if(textField.autoCompleteTableAppearsAsKeyboardAccessory){
+    if(textField.autoCompleteAppearsAsKeyboardAccessory){
         CGSize screenSize = [UIScreen mainScreen].bounds.size;
         UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
-        newTableViewFrame.size.width = UIInterfaceOrientationIsPortrait(orientation) ? screenSize.width : screenSize.height;
-        newTableViewFrame.size.height = height;
+        newCollectionViewFrame.size.width = UIInterfaceOrientationIsPortrait(orientation) ? screenSize.width : screenSize.height;
+        newCollectionViewFrame.size.height = height;
     } else {
-        newTableViewFrame = [[self class] autoCompleteTableViewFrameForTextField:textField];
-        newTableViewFrame.size.height = height + textField.autoCompleteTableView.contentInset.top;
+        newCollectionViewFrame = [[self class] autoCompleteCollectionViewFrameForTextField:textField];
+        newCollectionViewFrame.size.height = height + textField.autoCompleteCollectionView.contentInset.top;
     }
     
-    return newTableViewFrame;
+    return newCollectionViewFrame;
 }
 
-+ (CGFloat)autoCompleteTableHeightForTextField:(MLPAutoCompleteTextField *)textField
++ (CGFloat)autoCompleteViewHeightForTextField:(MLPAutoCompleteTextField *)textField
                               withNumberOfRows:(NSInteger)numberOfRows
 {
     CGFloat maximumHeightMultiplier = (textField.maximumNumberOfAutoCompleteRows - 0.5);
@@ -793,14 +786,14 @@ withAutoCompleteString:(NSString *)string
     return height;
 }
 
-+ (CGRect)autoCompleteTableViewFrameForTextField:(MLPAutoCompleteTextField *)textField
++ (CGRect)autoCompleteCollectionViewFrameForTextField:(MLPAutoCompleteTextField *)textField
 {
     CGRect frame = textField.frame;
     if (CGRectIsEmpty(frame)) return frame;
 
     frame.origin.y += textField.frame.size.height;
-    frame.origin.x += textField.autoCompleteTableOriginOffset.width;
-    frame.origin.y += textField.autoCompleteTableOriginOffset.height;
+    frame.origin.x += textField.autoCompleteOriginOffset.width;
+    frame.origin.y += textField.autoCompleteOriginOffset.height;
     frame = CGRectInset(frame, 1, 0);
     
     return frame;
@@ -845,14 +838,7 @@ withAutoCompleteString:(NSString *)string
     return attributedText;
 }
 
-
 @end
-
-
-
-
-
-
 
 #pragma mark -
 #pragma mark - MLPAutoCompleteFetchOperation
@@ -952,9 +938,6 @@ withAutoCompleteString:(NSString *)string
     [self setIncompleteString:nil];
 }
 @end
-
-
-
 
 
 #pragma mark -

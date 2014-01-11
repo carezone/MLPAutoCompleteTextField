@@ -20,11 +20,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 @optional
 - (BOOL)autoCompleteTextField:(MLPAutoCompleteTextField *)textField
-    shouldStyleAutoCompleteTableView:(UITableView *)autoCompleteTableView
+    shouldStyleAutoCompleteCollectionView:(UITableView *)autoCompleteCollectionView
                       forBorderStyle:(UITextBorderStyle)borderStyle;
 
-/*IndexPath corresponds to the order of strings within the autocomplete table,
- not the original data source.*/
+/* IndexPath corresponds to the order of strings within the autocomplete collection view, not the original data source.*/
 - (BOOL)autoCompleteTextField:(MLPAutoCompleteTextField *)textField
           shouldConfigureCell:(UITableViewCell *)cell
        withAutoCompleteString:(NSString *)autocompleteString
@@ -33,9 +32,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             forRowAtIndexPath:(NSIndexPath *)indexPath;
 
 
-/*IndexPath corresponds to the order of strings within the autocomplete table,
-not the original data source.
- autoCompleteObject may be nil if the selectedString had no object associated with it.
+/* IndexPath corresponds to the order of strings within the autocomplete collection, not the original data source.
+   autoCompleteObject may be nil if the selectedString had no object associated with it.
  */
 - (void)autoCompleteTextField:(MLPAutoCompleteTextField *)textField
   didSelectAutoCompleteString:(NSString *)selectedString
@@ -43,6 +41,6 @@ not the original data source.
             forRowAtIndexPath:(NSIndexPath *)indexPath;
 
 - (void)autoCompleteTextField:(MLPAutoCompleteTextField *)textField
-willShowAutoCompleteTableView:(UITableView *)autoCompleteTableView;
+willShowAutoCompleteCollectionView:(UITableView *)autoCompleteCollectionView;
 
 @end
