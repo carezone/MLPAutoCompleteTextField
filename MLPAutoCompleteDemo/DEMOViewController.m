@@ -54,6 +54,7 @@
     [self.autocompleteTextField setBorderStyle:UITextBorderStyleRoundedRect];
 
     self.autocompleteTextField.autoCompleteAppearsAsKeyboardAccessory = YES;
+    self.autocompleteTextField.reverseAutoCompleteSuggestionsBoldEffect = YES;
 
     //[self.autocompleteTextField setShowAutoCompleteTableWhenEditingBegins:YES];
     //[self.autocompleteTextField setAutoCompleteTableBackgroundColor:[UIColor colorWithWhite:1 alpha:0.5]];

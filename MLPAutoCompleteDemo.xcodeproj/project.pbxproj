@@ -1649,6 +1649,7 @@
 		85FF055716B0874D009A94EE = {
 			isa = PBXGroup;
 			children = (
+				85FF05A116B0887F009A94EE /* MLPAutoCompleteTextField */,
 				85FF056C16B0874D009A94EE /* MLPAutoCompleteDemo */,
 				85FF059016B0874E009A94EE /* MLPAutoCompleteDemoTests */,
 				85FF056516B0874D009A94EE /* Frameworks */,
@@ -1686,7 +1687,6 @@
 		85FF056C16B0874D009A94EE /* MLPAutoCompleteDemo */ = {
 			isa = PBXGroup;
 			children = (
-				85FF05A116B0887F009A94EE /* MLPAutoCompleteTextField */,
 				85FF057516B0874D009A94EE /* DEMOAppDelegate.h */,
 				85FF057616B0874D009A94EE /* DEMOAppDelegate.m */,
 				85FF057E16B0874D009A94EE /* DEMOViewController.h */,
@@ -1748,6 +1748,7 @@
 				85EB411516C3488D000C193E /* NSString+Levenshtein.m */,
 			);
 			name = MLPAutoCompleteTextField;
+			path = MLPAutoCompleteDemo;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
