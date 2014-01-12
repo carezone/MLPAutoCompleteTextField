@@ -1,8 +1,7 @@
 //
-//  MLPAutoCompletionObject.h
+//  MLPAutoCompleteCell.h
 //
-//  Created by Eddy Borja on 4/19/13.
-//  Copyright (c) 2013 Mainloop LLC. All rights reserved.
+//  Created by Christoph Zelazowski on 1/11/14.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
 //  "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish,
@@ -17,21 +16,8 @@
 //  THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 
-/**
- * In some cases you may want strings in an autocomplete menu to be associated to some kind of model object (For example: a list of names 
- * may be associated with friend objects and you want to track which friend object a user selects based on what name they choose from the 
- * autocomplete list.)
- *
- * In order to pass your model objects straight to the MLPAutoCompleteTextFieldDataSource's 
- * autoCompleteTextField:possibleCompletionsForString: method, your model object must implement this protocol.
- */
-@protocol MLPAutoCompletionObject <NSObject>
-@required
-
-/*Return the string that should be displayed in the autocomplete menu that 
- represents this object. (For example: a person's name.)*/
-- (NSString *)autocompleteString;
-
+@interface MLPAutoCompleteCell : UICollectionViewCell
+@property (strong) UILabel *textLabel;
 @end

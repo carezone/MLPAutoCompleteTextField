@@ -55,6 +55,9 @@
 
     self.autocompleteTextField.autoCompleteAppearsAsKeyboardAccessory = YES;
     self.autocompleteTextField.reverseAutoCompleteSuggestionsBoldEffect = YES;
+    [self.autocompleteTextField setAutoCompleteContentInsets:UIEdgeInsetsMake(0, 10, 0, 0)];
+
+    self.autocompleteTextField.autoCompleteScrollDirection = UICollectionViewScrollDirectionHorizontal;
 
     //[self.autocompleteTextField setShowAutoCompleteTableWhenEditingBegins:YES];
     //[self.autocompleteTextField setAutoCompleteTableBackgroundColor:[UIColor colorWithWhite:1 alpha:0.5]];
@@ -62,8 +65,8 @@
     //You can use custom TableViewCell classes and nibs in the autocomplete tableview if you wish.
     //This is only supported in iOS 6.0, in iOS 5.0 you can set a custom NIB for the cell
     if ([[[UIDevice currentDevice] systemVersion] compare:@"6.0" options:NSNumericSearch] != NSOrderedAscending) {
-        [self.autocompleteTextField registerAutoCompleteCellClass:[DEMOCustomAutoCompleteCell class]
-                                           forCellReuseIdentifier:@"CustomCellId"];
+        //[self.autocompleteTextField registerAutoCompleteCellClass:[DEMOCustomAutoCompleteCell class]
+        //                                   forCellReuseIdentifier:@"CustomCellId"];
     }
     else{
         //Turn off bold effects on iOS 5.0 as they are not supported and will result in an exception
@@ -491,7 +494,7 @@
 
 
 - (BOOL)autoCompleteTextField:(MLPAutoCompleteTextField *)textField
-          shouldConfigureCell:(UITableViewCell *)cell
+          shouldConfigureCell:(MLPAutoCompleteCell *)cell
        withAutoCompleteString:(NSString *)autocompleteString
          withAttributedString:(NSAttributedString *)boldedString
         forAutoCompleteObject:(id<MLPAutoCompletionObject>)autocompleteObject
@@ -501,7 +504,7 @@
     NSString *filename = [autocompleteString stringByAppendingString:@".png"];
     filename = [filename stringByReplacingOccurrencesOfString:@" " withString:@"-"];
     filename = [filename stringByReplacingOccurrencesOfString:@"&" withString:@"and"];
-    [cell.imageView setImage:[UIImage imageNamed:filename]];
+    //[cell.imageView setImage:[UIImage imageNamed:filename]];
     
     return YES;
 }

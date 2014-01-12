@@ -31,15 +31,6 @@
     return self;
 }
 
-- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
-{
-    self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
-    if (self) {      
-        [self initialize];
-    }
-    return self;
-}
-
 - (void)awakeFromNib
 {
     [self initialize];
@@ -49,7 +40,6 @@
 {
     [self setSelectedBackgroundView:[self orangeSelectedBackgroundView]];
 }
-
 
 - (UIView *)orangeSelectedBackgroundView
 {

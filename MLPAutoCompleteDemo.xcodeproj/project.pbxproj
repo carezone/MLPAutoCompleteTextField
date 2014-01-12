@@ -531,6 +531,8 @@
 		85FF058D16B0874E009A94EE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85FF056816B0874D009A94EE /* Foundation.framework */; };
 		85FF059516B0874E009A94EE /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 85FF059316B0874E009A94EE /* InfoPlist.strings */; };
 		85FF059816B0874E009A94EE /* MLPAutoCompleteDemoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 85FF059716B0874E009A94EE /* MLPAutoCompleteDemoTests.m */; };
+		B004AEBA1881EC0800DD7970 /* MLPAutoCompleteCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B004AEB91881EC0800DD7970 /* MLPAutoCompleteCell.m */; };
+		B004AEBB1881EC0800DD7970 /* MLPAutoCompleteCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B004AEB91881EC0800DD7970 /* MLPAutoCompleteCell.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1086,6 +1088,8 @@
 		85FF059416B0874E009A94EE /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		85FF059616B0874E009A94EE /* MLPAutoCompleteDemoTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MLPAutoCompleteDemoTests.h; sourceTree = "<group>"; };
 		85FF059716B0874E009A94EE /* MLPAutoCompleteDemoTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MLPAutoCompleteDemoTests.m; sourceTree = "<group>"; };
+		B004AEB81881EC0800DD7970 /* MLPAutoCompleteCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLPAutoCompleteCell.h; path = MLPAutoCompleteTextField/MLPAutoCompleteCell.h; sourceTree = SOURCE_ROOT; };
+		B004AEB91881EC0800DD7970 /* MLPAutoCompleteCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MLPAutoCompleteCell.m; path = MLPAutoCompleteTextField/MLPAutoCompleteCell.m; sourceTree = SOURCE_ROOT; };
 		BC31C639174877BE0044B2A5 /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -1739,6 +1743,8 @@
 		85FF05A116B0887F009A94EE /* MLPAutoCompleteTextField */ = {
 			isa = PBXGroup;
 			children = (
+				B004AEB81881EC0800DD7970 /* MLPAutoCompleteCell.h */,
+				B004AEB91881EC0800DD7970 /* MLPAutoCompleteCell.m */,
 				85EB411016C3488D000C193E /* MLPAutoCompleteTextField.h */,
 				85EB411116C3488D000C193E /* MLPAutoCompleteTextField.m */,
 				85EB411216C3488D000C193E /* MLPAutoCompleteTextFieldDataSource.h */,
@@ -2361,6 +2367,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B004AEBA1881EC0800DD7970 /* MLPAutoCompleteCell.m in Sources */,
 				85FF057316B0874D009A94EE /* main.m in Sources */,
 				85FF057716B0874D009A94EE /* DEMOAppDelegate.m in Sources */,
 				85FF058016B0874D009A94EE /* DEMOViewController.m in Sources */,
@@ -2375,6 +2382,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B004AEBB1881EC0800DD7970 /* MLPAutoCompleteCell.m in Sources */,
 				85FF059816B0874E009A94EE /* MLPAutoCompleteDemoTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2462,6 +2470,7 @@
 		85FF059C16B0874E009A94EE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ENABLE_NS_ASSERTIONS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MLPAutoCompleteDemo/MLPAutoCompleteDemo-Prefix.pch";
 				INFOPLIST_FILE = "MLPAutoCompleteDemo/MLPAutoCompleteDemo-Info.plist";
@@ -2478,6 +2487,7 @@
 		85FF059D16B0874E009A94EE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ENABLE_NS_ASSERTIONS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MLPAutoCompleteDemo/MLPAutoCompleteDemo-Prefix.pch";
 				INFOPLIST_FILE = "MLPAutoCompleteDemo/MLPAutoCompleteDemo-Info.plist";
