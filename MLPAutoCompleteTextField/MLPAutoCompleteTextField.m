@@ -277,7 +277,29 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
         [self configureCell:self.sizingCollectionViewCell atIndexPath:indexPath withAutoCompleteString:suggestedString];
 
         CGSize size = [self.sizingCollectionViewCell sizeThatFits:CGSizeMake(DBL_MAX, self.autoCompleteRowHeight)];
-        return CGSizeMake(size.width, self.autoCompleteRowHeight);
+        size = CGSizeMake(size.width, self.autoCompleteRowHeight);
+
+        NSInteger numberOfRows = [self.autoCompleteSuggestions count];
+
+        // Make it so that the last cell fills the width of the collectionView (so that the user can tap on the empty space to select it)
+
+        if (indexPath.row == numberOfRows - 1) {
+            CGFloat totalWidth = 0.f;
+            for (int i=0; i < numberOfRows - 1; i++) {
+                totalWidth += [self collectionView:collectionView layout:collectionViewLayout
+                    sizeForItemAtIndexPath:[NSIndexPath indexPathForRow:i inSection:0]].width;
+
+                if (totalWidth > collectionView.frame.size.width) break;
+            }
+
+            totalWidth += size.width;
+
+            if (totalWidth < collectionView.frame.size.width) {
+                size.width += (collectionView.frame.size.width - totalWidth);
+            }
+        }
+
+        return size;
     }
 }
 
