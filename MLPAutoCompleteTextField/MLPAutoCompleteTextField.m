@@ -319,12 +319,20 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
 
     MLPAutoCompleteCell *selectedCell = (MLPAutoCompleteCell*)[collectionView cellForItemAtIndexPath:indexPath];
     NSString *autoCompleteString = selectedCell.textLabel.text;
-    self.text = autoCompleteString;
 
     id<MLPAutoCompletionObject> autoCompleteObject = self.autoCompleteSuggestions[indexPath.row];
     if(![autoCompleteObject conformsToProtocol:@protocol(MLPAutoCompletionObject)]) {
         autoCompleteObject = nil;
     }
+
+    if([self.autoCompleteDelegate respondsToSelector:
+        @selector(autoCompleteTextField:willSelectAutoCompleteString:withAutoCompleteObject:forRowAtIndexPath:)]) {
+
+        [self.autoCompleteDelegate autoCompleteTextField:self willSelectAutoCompleteString:autoCompleteString
+            withAutoCompleteObject:autoCompleteObject forRowAtIndexPath:indexPath];
+    }
+
+    self.text = autoCompleteString;
 
     if([self.autoCompleteDelegate respondsToSelector:
         @selector(autoCompleteTextField:didSelectAutoCompleteString:withAutoCompleteObject:forRowAtIndexPath:)]) {

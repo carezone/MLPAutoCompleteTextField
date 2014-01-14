@@ -41,6 +41,9 @@
  * IndexPath corresponds to the order of strings within the autocomplete collection, not the original data source.
  * autoCompleteObject may be nil if the selectedString had no object associated with it.
  */
+- (void)autoCompleteTextField:(MLPAutoCompleteTextField *)textField willSelectAutoCompleteString:(NSString *)selectedString
+       withAutoCompleteObject:(id<MLPAutoCompletionObject>)selectedObject forRowAtIndexPath:(NSIndexPath *)indexPath;
+
 - (void)autoCompleteTextField:(MLPAutoCompleteTextField *)textField didSelectAutoCompleteString:(NSString *)selectedString
     withAutoCompleteObject:(id<MLPAutoCompletionObject>)selectedObject forRowAtIndexPath:(NSIndexPath *)indexPath;
 
