@@ -212,8 +212,6 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
     NSAttributedString *boldedString = nil;
 
     if(self.applyBoldEffectToAutoCompleteSuggestions) {
-        BOOL attributedTextSupport = [cell.textLabel respondsToSelector:@selector(setAttributedText:)];
-        NSAssert(attributedTextSupport, @"Attributed strings on UILabels are not supported before iOS 6.0");
         boldedString = [self boldedString:string withSubstrings:self.text
             separatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
     }
@@ -274,7 +272,15 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
         }
 
         NSString *suggestedString = [self suggestedStringAtIndexPath:indexPath];
-        [self configureCell:self.sizingCollectionViewCell atIndexPath:indexPath withAutoCompleteString:suggestedString];
+
+        // Note: Ideally, when calculating the width of the sizing cell, we'd want to call configureCell:atIndexPath:withAutoCompleteString:
+        // to apply exactly the same bold attributes as the ones being displayed in the cell; however, this function is expensive because it
+        // highlights substrings and there is no easy way to make it an order of magnitude faster. On the other hand, if you have hundreds
+        // of auto complete suggestions, collectionView:layout:sizeForItemAtIndexPath: is going to be called hundreds of times.
+        // So instead, we assume that the entire text is bold and use that as the approximation of the label width.
+
+        self.sizingCollectionViewCell.textLabel.font = [UIFont fontWithName:self.autoCompleteBoldFontName size:self.autoCompleteFontSize];
+        self.sizingCollectionViewCell.textLabel.text = suggestedString;
 
         CGSize size = [self.sizingCollectionViewCell sizeThatFits:CGSizeMake(DBL_MAX, self.autoCompleteRowHeight)];
         size = CGSizeMake(size.width, self.autoCompleteRowHeight);
