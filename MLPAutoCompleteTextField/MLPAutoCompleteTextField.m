@@ -320,7 +320,8 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
     MLPAutoCompleteCell *selectedCell = (MLPAutoCompleteCell*)[collectionView cellForItemAtIndexPath:indexPath];
     NSString *autoCompleteString = selectedCell.textLabel.text;
 
-    id<MLPAutoCompletionObject> autoCompleteObject = self.autoCompleteSuggestions[indexPath.row];
+    id autoCompleteSuggestion = self.autoCompleteSuggestions[indexPath.row];
+    id<MLPAutoCompletionObject> autoCompleteObject = autoCompleteSuggestion;
     if(![autoCompleteObject conformsToProtocol:@protocol(MLPAutoCompletionObject)]) {
         autoCompleteObject = nil;
     }
@@ -332,8 +333,10 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
             withAutoCompleteObject:autoCompleteObject forRowAtIndexPath:indexPath];
     }
 
-    self.text = autoCompleteString;
-
+    if (autoCompleteSuggestion != self.autoCompleteMenuItem) {
+        self.text = autoCompleteString;
+    }
+    
     if([self.autoCompleteDelegate respondsToSelector:
         @selector(autoCompleteTextField:didSelectAutoCompleteString:withAutoCompleteObject:forRowAtIndexPath:)]) {
 
@@ -348,6 +351,10 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
 
 - (void)autoCompleteTermsDidSort:(NSArray *)completions
 {
+    if (self.autoCompleteMenuItem) {
+        completions = [completions arrayByAddingObject:self.autoCompleteMenuItem];
+    }
+
     [self setAutoCompleteSuggestions:completions];
     [self resetKeyboardAutoCompleteViewFrameForNumberOfRows:MIN(completions.count, self.maximumNumberOfAutoCompleteRows)];
     [self.autoCompleteCollectionView reloadData];
