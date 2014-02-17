@@ -333,7 +333,7 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
             withAutoCompleteObject:autoCompleteObject forRowAtIndexPath:indexPath];
     }
 
-    if (autoCompleteSuggestion != self.autoCompleteMenuItem) {
+    if (autoCompleteSuggestion != self.autoCompleteMenuItem && self.disableAutoCompleteReplacement == NO) {
         self.text = autoCompleteString;
     }
     

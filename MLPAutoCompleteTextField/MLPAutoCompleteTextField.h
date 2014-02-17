@@ -55,6 +55,7 @@
 @property (assign) BOOL showAutoCompleteWhenEditingBegins;
 
 @property (assign) BOOL disableAutoCompleteUserInteractionWhileFetching;
+@property (assign) BOOL disableAutoCompleteReplacement;
 
 // if set to TRUE, the autocomplete table will appear as a keyboard input accessory view rather than a drop down.
 @property (assign) BOOL autoCompleteAppearsAsKeyboardAccessory;
