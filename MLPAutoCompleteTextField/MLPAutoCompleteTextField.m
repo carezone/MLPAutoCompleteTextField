@@ -235,6 +235,13 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
     [cell.textLabel setTextColor:self.textColor];
     [cell setBackgroundColor:self.autoCompleteCellBackgroundColor];
 
+    if(self.autoCompleteCellTextColor) {
+      [cell.textLabel setTextColor:self.autoCompleteCellTextColor];
+    }
+    else {
+      [cell.textLabel setTextColor:[UIColor darkTextColor]];
+    }
+
     if(boldedString) {
         if ([cell.textLabel respondsToSelector:@selector(setAttributedText:)]) {
             [cell.textLabel setAttributedText:boldedString];
@@ -247,13 +254,6 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
     else {
         [cell.textLabel setText:string];
         [cell.textLabel setFont:[UIFont fontWithName:self.font.fontName size:self.autoCompleteFontSize]];
-    }
-
-    if(self.autoCompleteCellTextColor) {
-        [cell.textLabel setTextColor:self.autoCompleteCellTextColor];
-    }
-    else {
-        [cell.textLabel setTextColor:[UIColor darkTextColor]];
     }
 }
 
@@ -860,7 +860,15 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
     UIFont *boldFont = [UIFont fontWithName:self.autoCompleteBoldFontName size:self.autoCompleteFontSize];
     UIFont *regularFont = [UIFont fontWithName:self.autoCompleteRegularFontName size:self.autoCompleteFontSize];
 
-    NSDictionary *boldTextAttributes = @{NSFontAttributeName : boldFont};
+    UIColor *boldTextColor = [UIColor darkTextColor];
+    if (self.autoCompleteCellBoldTextColor) {
+      boldTextColor = self.autoCompleteCellBoldTextColor;
+    }
+    else if (self.autoCompleteCellTextColor) {
+      boldTextColor = self.autoCompleteCellTextColor;
+    }
+
+    NSDictionary *boldTextAttributes = @{NSFontAttributeName : boldFont, NSForegroundColorAttributeName : boldTextColor};
     NSDictionary *regularTextAttributes = @{NSFontAttributeName : regularFont};
     NSDictionary *firstAttributes;
     NSDictionary *secondAttributes;

@@ -82,6 +82,7 @@
 @property (nonatomic, strong) UIColor *autoCompleteBackgroundColor;
 @property (strong) UIColor *autoCompleteCellBackgroundColor;
 @property (strong) UIColor *autoCompleteCellTextColor;
+@property (strong) UIColor *autoCompleteCellBoldTextColor;
 
 - (void)registerAutoCompleteCellNib:(UINib *)nib forCellReuseIdentifier:(NSString *)reuseIdentifier;
 - (void)registerAutoCompleteCellClass:(Class)cellClass forCellReuseIdentifier:(NSString *)reuseIdentifier;
