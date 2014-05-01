@@ -80,8 +80,10 @@
 @property (nonatomic, strong) UIColor *autoCompleteBorderColor;
 @property (nonatomic, assign) CGFloat autoCompleteBorderWidth;
 @property (nonatomic, strong) UIColor *autoCompleteBackgroundColor;
+
 @property (strong) UIColor *autoCompleteCellBackgroundColor;
 @property (strong) UIColor *autoCompleteCellTextColor;
+@property (assign) NSTextAlignment autoCompleteCellTextAlignment;
 @property (strong) UIColor *autoCompleteCellBoldTextColor;
 
 - (void)registerAutoCompleteCellNib:(UINib *)nib forCellReuseIdentifier:(NSString *)reuseIdentifier;

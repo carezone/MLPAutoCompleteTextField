@@ -232,6 +232,7 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
         }
     }
 
+    cell.textLabel.textAlignment = self.autoCompleteCellTextAlignment;
     [cell.textLabel setTextColor:self.textColor];
     [cell setBackgroundColor:self.autoCompleteCellBackgroundColor];
 
@@ -516,6 +517,8 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
 
     [self setAutoCompleteFetchQueue:[NSOperationQueue new]];
     self.autoCompleteFetchQueue.name = [NSString stringWithFormat:@"Fetch Queue %i", arc4random()];
+
+    self.autoCompleteCellTextAlignment = NSTextAlignmentLeft;
 }
 
 - (void)setAutoCompleteViewAppearance
