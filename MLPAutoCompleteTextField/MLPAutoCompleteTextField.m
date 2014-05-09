@@ -233,28 +233,16 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
     }
 
     cell.textLabel.textAlignment = self.autoCompleteCellTextAlignment;
-    [cell.textLabel setTextColor:self.textColor];
-    [cell setBackgroundColor:self.autoCompleteCellBackgroundColor];
-
-    if(self.autoCompleteCellTextColor) {
-      [cell.textLabel setTextColor:self.autoCompleteCellTextColor];
-    }
-    else {
-      [cell.textLabel setTextColor:[UIColor darkTextColor]];
-    }
+    cell.backgroundColor = self.autoCompleteCellBackgroundColor;
+    cell.textLabel.textColor = self.textColor;
 
     if(boldedString) {
-        if ([cell.textLabel respondsToSelector:@selector(setAttributedText:)]) {
-            [cell.textLabel setAttributedText:boldedString];
-        }
-        else {
-            [cell.textLabel setText:string];
-            [cell.textLabel setFont:[UIFont fontWithName:self.font.fontName size:self.autoCompleteFontSize]];
-        }
+        [cell.textLabel setAttributedText:boldedString];
     }
     else {
-        [cell.textLabel setText:string];
-        [cell.textLabel setFont:[UIFont fontWithName:self.font.fontName size:self.autoCompleteFontSize]];
+        cell.textLabel.textColor = (self.autoCompleteCellTextColor != nil) ? self.autoCompleteCellTextColor : self.textColor;
+        cell.textLabel.font = [UIFont fontWithName:self.font.fontName size:self.autoCompleteFontSize];
+        cell.textLabel.text = string;
     }
 }
 
@@ -864,15 +852,18 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
     UIFont *regularFont = [UIFont fontWithName:self.autoCompleteRegularFontName size:self.autoCompleteFontSize];
 
     UIColor *boldTextColor = [UIColor darkTextColor];
+    UIColor *regularTextColor = [UIColor darkTextColor];
+
     if (self.autoCompleteCellBoldTextColor) {
       boldTextColor = self.autoCompleteCellBoldTextColor;
     }
-    else if (self.autoCompleteCellTextColor) {
-      boldTextColor = self.autoCompleteCellTextColor;
+
+    if (self.autoCompleteCellTextColor) {
+      regularTextColor = self.autoCompleteCellTextColor;
     }
 
     NSDictionary *boldTextAttributes = @{NSFontAttributeName : boldFont, NSForegroundColorAttributeName : boldTextColor};
-    NSDictionary *regularTextAttributes = @{NSFontAttributeName : regularFont};
+    NSDictionary *regularTextAttributes = @{NSFontAttributeName : regularFont, NSForegroundColorAttributeName : regularTextColor};
     NSDictionary *firstAttributes;
     NSDictionary *secondAttributes;
 
