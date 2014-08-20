@@ -726,13 +726,7 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
 {
     UICollectionViewFlowLayout *layout = (UICollectionViewFlowLayout*)self.autoCompleteCollectionView.collectionViewLayout;
     layout.scrollDirection = self.autoCompleteScrollDirection;
-
-    if (self.autoCompleteScrollDirection == UICollectionViewScrollDirectionVertical) {
-        layout.minimumInteritemSpacing = 0;
-    }
-    else {
-        layout.minimumInteritemSpacing = 10;
-    }
+    layout.minimumInteritemSpacing = 0;
 }
 
 #pragma mark - Getters

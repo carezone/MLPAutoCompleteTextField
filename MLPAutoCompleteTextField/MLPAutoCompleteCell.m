@@ -25,7 +25,7 @@ static const CGFloat kDefaultHorizontalPadding = 10.0;
 - (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        _textLabel = [[UILabel alloc] initWithFrame:frame];
+        _textLabel = [[UILabel alloc] initWithFrame:CGRectZero];
         _textLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         _textLabel.font = [UIFont systemFontOfSize:14];
         _textLabel.textColor = [UIColor darkTextColor];
@@ -42,13 +42,13 @@ static const CGFloat kDefaultHorizontalPadding = 10.0;
 - (void)layoutSubviews
 {
     CGRect frame = self.contentView.frame;
-    _textLabel.frame = CGRectMake(kDefaultHorizontalPadding, 0, frame.size.width - 2 * kDefaultHorizontalPadding, frame.size.height);
+    _textLabel.frame = CGRectMake(kDefaultHorizontalPadding, 0, frame.size.width - kDefaultHorizontalPadding, frame.size.height);
 }
 
 - (CGSize)sizeThatFits:(CGSize)size
 {
     CGSize labelSize = [_textLabel sizeThatFits:size];
-    return CGSizeMake(MIN(labelSize.width + 2 * kDefaultHorizontalPadding, size.width), size.height);
+    return CGSizeMake(MIN(labelSize.width + kDefaultHorizontalPadding, size.width), size.height);
 }
 
 @end
