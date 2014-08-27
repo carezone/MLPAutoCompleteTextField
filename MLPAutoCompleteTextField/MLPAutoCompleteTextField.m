@@ -348,6 +348,8 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
     [self resetKeyboardAutoCompleteViewFrameForNumberOfRows:MIN(completions.count, self.maximumNumberOfAutoCompleteRows)];
     [self.autoCompleteCollectionView reloadData];
 
+    self.autoCompleteCollectionView.userInteractionEnabled = (self.autoCompleteSuggestions.count > 0);
+
     if (self.autoCompleteSuggestions.count > 0) {
         [self.autoCompleteCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]
             atScrollPosition:UICollectionViewScrollPositionTop animated:YES];
