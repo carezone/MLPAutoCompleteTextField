@@ -793,9 +793,6 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
     CGFloat height = [[self class] autoCompleteViewHeightForTextField:textField withNumberOfRows:numberOfRows];
 
     if(textField.autoCompleteAppearsAsKeyboardAccessory) {
-        CGSize screenSize = [UIScreen mainScreen].bounds.size;
-        UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
-        newCollectionViewFrame.size.width = UIInterfaceOrientationIsPortrait(orientation) ? screenSize.width : screenSize.height;
 
         if (textField.autoCompleteScrollDirection == UICollectionViewScrollDirectionVertical) {
             newCollectionViewFrame.size.height = height;
@@ -804,8 +801,14 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
             newCollectionViewFrame.size.height = textField.autoCompleteRowHeight;
         }
 
+        CGSize screenSize = [UIScreen mainScreen].bounds.size;
         if ([[UIDevice currentDevice] systemVersion].floatValue >= 8.0) {
             newCollectionViewFrame.origin.y = -CGRectGetHeight(newCollectionViewFrame);
+            newCollectionViewFrame.size.width = screenSize.width;
+        }
+        else {
+            UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
+            newCollectionViewFrame.size.width = UIInterfaceOrientationIsPortrait(orientation) ? screenSize.width : screenSize.height;
         }
     }
     else {
