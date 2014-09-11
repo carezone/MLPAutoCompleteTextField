@@ -41,6 +41,8 @@ static const CGFloat kDefaultHorizontalPadding = 10.0;
 
 - (void)layoutSubviews
 {
+    [super layoutSubviews];
+
     CGRect frame = self.contentView.frame;
     _textLabel.frame = CGRectMake(kDefaultHorizontalPadding, 0, frame.size.width - kDefaultHorizontalPadding, frame.size.height);
 }
