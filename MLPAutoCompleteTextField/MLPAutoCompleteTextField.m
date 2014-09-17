@@ -509,6 +509,7 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
     self.autoCompleteFetchQueue.name = [NSString stringWithFormat:@"Fetch Queue %i", arc4random()];
 
     self.autoCompleteCellTextAlignment = NSTextAlignmentLeft;
+    self.autocorrectionType = UITextAutocorrectionTypeNo;
 }
 
 - (void)setAutoCompleteViewAppearance
@@ -796,6 +797,10 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
         CGSize screenSize = [UIScreen mainScreen].bounds.size;
         UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
         newCollectionViewFrame.size.width = UIInterfaceOrientationIsPortrait(orientation) ? screenSize.width : screenSize.height;
+
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.0) {
+          newCollectionViewFrame.size.width = screenSize.width;
+        }
 
         if (textField.autoCompleteScrollDirection == UICollectionViewScrollDirectionVertical) {
             newCollectionViewFrame.size.height = height;
