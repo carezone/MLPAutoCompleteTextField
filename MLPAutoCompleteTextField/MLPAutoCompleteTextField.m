@@ -473,7 +473,15 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
 
 - (void)closeAutoCompleteCollectionView
 {
-    [self.autoCompleteCollectionView removeFromSuperview];
+    // The if statement here is a workaround for possible UIKit bug.
+    // When hardware keyabord is connected (or possibly a bluetooth
+    // keyboard) after dealloc of this object the keyboard appears if
+    // `removeFromSuperview` is called. and then it's possible to tap
+    // on any button on the keyboard and the app crashes.
+    if (self.superview) {
+        [self.autoCompleteCollectionView removeFromSuperview];
+    }
+
     [self setInputAccessoryView:nil];
     [self restoreOriginalShadowProperties];
 }
