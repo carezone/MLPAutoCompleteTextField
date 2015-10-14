@@ -345,8 +345,8 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
     }
 
     [self setAutoCompleteSuggestions:completions];
-    [self resetKeyboardAutoCompleteViewFrameForNumberOfRows:MIN(completions.count, self.maximumNumberOfAutoCompleteRows)];
     [self.autoCompleteCollectionView reloadData];
+    [self resetKeyboardAutoCompleteViewFrameForNumberOfRows:MIN(completions.count, self.maximumNumberOfAutoCompleteRows)];
 
     self.autoCompleteCollectionView.userInteractionEnabled = (self.autoCompleteSuggestions.count > 0);
 
