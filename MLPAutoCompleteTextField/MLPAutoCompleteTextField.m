@@ -814,7 +814,7 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
             newCollectionViewFrame.size.height = height;
         }
         else {
-            newCollectionViewFrame.size.height = textField.autoCompleteRowHeight;
+            newCollectionViewFrame.size.height = (numberOfRows == 0 ? 0 : textField.autoCompleteRowHeight);
         }
 
         newCollectionViewFrame.origin.y = -CGRectGetHeight(newCollectionViewFrame);
