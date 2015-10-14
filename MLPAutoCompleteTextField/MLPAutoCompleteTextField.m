@@ -533,7 +533,11 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
 - (void)setAutoCompleteViewForKeyboardAppearance
 {
     [self resetKeyboardAutoCompleteViewFrameForNumberOfRows:MIN(self.autoCompleteSuggestions.count, self.maximumNumberOfAutoCompleteRows)];
-    [self.autoCompleteCollectionView setContentInset:self.autoCompleteContentInsets];
+    if (UIEdgeInsetsEqualToEdgeInsets(self.autoCompleteContentInsets, self.autoCompleteCollectionView.contentInset) == NO) {
+        // The if check fixes UIViewAlertForUnsatisfiableConstraints when you rotate the device after
+        // choosing an item from suggestions and rotating the device.
+        self.autoCompleteCollectionView.contentInset = self.autoCompleteContentInsets;
+    }
     [self.autoCompleteCollectionView setScrollIndicatorInsets:self.autoCompleteScrollIndicatorInsets];
     [self setInputAccessoryView:self.autoCompleteCollectionView];
 }
