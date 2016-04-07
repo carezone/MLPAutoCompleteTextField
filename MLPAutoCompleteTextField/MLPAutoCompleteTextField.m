@@ -378,9 +378,15 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
 
 #pragma mark - Events
 
+- (void)setText:(NSString *)text
+{
+    [super setText:text];
+    [self textFieldDidChangeWithNotification:nil];
+}
+
 - (void)textFieldDidChangeWithNotification:(NSNotification *)aNotification
 {
-    if(aNotification.object == self) {
+    if(aNotification == nil || aNotification.object == self) {
         [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(fetchAutoCompleteSuggestions) object:nil];
         [self performSelector:@selector(fetchAutoCompleteSuggestions) withObject:nil afterDelay:self.autoCompleteFetchRequestDelay];
     }
