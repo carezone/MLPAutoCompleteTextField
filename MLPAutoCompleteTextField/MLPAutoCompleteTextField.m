@@ -809,7 +809,6 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
 
     if(textField.autoCompleteAppearsAsKeyboardAccessory) {
         CGSize screenSize = [UIScreen mainScreen].bounds.size;
-        UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
         newCollectionViewFrame.size.width = screenSize.width;
 
         if (textField.autoCompleteScrollDirection == UICollectionViewScrollDirectionVertical) {
