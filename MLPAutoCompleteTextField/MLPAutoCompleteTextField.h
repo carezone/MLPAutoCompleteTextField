@@ -64,9 +64,8 @@
 
 @property (assign) BOOL autoCompleteViewHidden;
 
-@property (assign) CGFloat autoCompleteFontSize;
-@property (strong) NSString *autoCompleteBoldFontName;
-@property (strong) NSString *autoCompleteRegularFontName;
+@property (strong) UIFont *autoCompleteBoldFont;
+@property (strong) UIFont *autoCompleteRegularFont;
 
 @property (assign) NSInteger maximumNumberOfAutoCompleteRows;
 @property (assign) CGFloat autoCompleteRowHeight;

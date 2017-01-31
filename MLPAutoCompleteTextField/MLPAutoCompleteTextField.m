@@ -241,7 +241,7 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
     }
     else {
         cell.textLabel.textColor = (self.autoCompleteCellTextColor != nil) ? self.autoCompleteCellTextColor : self.textColor;
-        cell.textLabel.font = [UIFont fontWithName:self.font.fontName size:self.autoCompleteFontSize];
+        cell.textLabel.font = self.autoCompleteRegularFont;
         cell.textLabel.text = string;
     }
 }
@@ -268,7 +268,7 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
         // of auto complete suggestions, collectionView:layout:sizeForItemAtIndexPath: is going to be called hundreds of times.
         // So instead, we assume that the entire text is bold and use that as the approximation of the label width.
 
-        self.sizingCollectionViewCell.textLabel.font = [UIFont fontWithName:self.autoCompleteBoldFontName size:self.autoCompleteFontSize];
+        self.sizingCollectionViewCell.textLabel.font = self.autoCompleteBoldFont;
         self.sizingCollectionViewCell.textLabel.text = suggestedString;
 
         CGSize size = [self.sizingCollectionViewCell sizeThatFits:CGSizeMake(DBL_MAX, self.autoCompleteRowHeight)];
@@ -502,17 +502,13 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
     [self setApplyBoldEffectToAutoCompleteSuggestions:YES];
     [self setShowTextFieldDropShadowWhenAutoCompleteIsOpen:YES];
     [self setAutoCompleteRowHeight:40];
-    [self setAutoCompleteFontSize:14];
     [self setMaximumNumberOfAutoCompleteRows:3];
     [self setAutoCompleteScrollDirection:UICollectionViewScrollDirectionVertical];
 
     [self setAutoCompleteCellBackgroundColor:[UIColor clearColor]];
 
-    UIFont *regularFont = [UIFont systemFontOfSize:13];
-    [self setAutoCompleteRegularFontName:regularFont.fontName];
-
-    UIFont *boldFont = [UIFont boldSystemFontOfSize:13];
-    [self setAutoCompleteBoldFontName:boldFont.fontName];
+    self.autoCompleteRegularFont = [UIFont systemFontOfSize:13];
+    self.autoCompleteBoldFont = [UIFont boldSystemFontOfSize:13];
 
     [self setAutoCompleteSuggestions:[NSMutableArray array]];
 
@@ -865,8 +861,8 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
 - (NSAttributedString *)boldedString:(NSString *)string withSubstrings:(NSString *)substrings
     separatedByCharactersInSet:(NSCharacterSet *)characterSet
 {
-    UIFont *boldFont = [UIFont fontWithName:self.autoCompleteBoldFontName size:self.autoCompleteFontSize];
-    UIFont *regularFont = [UIFont fontWithName:self.autoCompleteRegularFontName size:self.autoCompleteFontSize];
+    UIFont *boldFont = self.autoCompleteBoldFont;
+    UIFont *regularFont = self.autoCompleteRegularFont;
 
     UIColor *boldTextColor = [UIColor darkTextColor];
     UIColor *regularTextColor = [UIColor darkTextColor];
