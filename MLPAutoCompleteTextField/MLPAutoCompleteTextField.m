@@ -911,45 +911,111 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
 
 #pragma mark - MLPAutoCompleteFetchOperation
 
+typedef NS_ENUM(NSUInteger, MLPAutoCompleteOperationState) {
+    MLPAutoCompleteOperationStateExecuting,
+    MLPAutoCompleteOperationStateFinished
+};
+
+@interface MLPAutoCompleteFetchOperation ()
+@property(nonatomic,assign) NSInteger state;
+@end
+
 @implementation MLPAutoCompleteFetchOperation
+
+- (NSString *)keyPathForState:(MLPAutoCompleteOperationState)aState
+{
+    switch (aState) {
+        case MLPAutoCompleteOperationStateExecuting:
+            return @"isExecuting";
+        case MLPAutoCompleteOperationStateFinished:
+            return @"isFinished";
+    }
+    return nil;
+}
+
+- (void)setState:(NSInteger)aState
+{
+    NSAssert(_state != MLPAutoCompleteOperationStateFinished, @"Finished operations shouldn't change state.");
+
+    NSString *oldStateKeyPath = [self keyPathForState:_state];
+    NSString *newStateKeyPath = [self keyPathForState:aState];
+
+    if (oldStateKeyPath) [self willChangeValueForKey:oldStateKeyPath];
+    if (newStateKeyPath) [self willChangeValueForKey:newStateKeyPath];
+
+    _state = aState;
+
+    if (oldStateKeyPath) [self didChangeValueForKey:oldStateKeyPath];
+    if (newStateKeyPath) [self didChangeValueForKey:newStateKeyPath];
+}
+
+- (BOOL)isExecuting
+{
+    return self.state == MLPAutoCompleteOperationStateExecuting;
+}
+
+- (BOOL)isFinished
+{
+    return self.state == MLPAutoCompleteOperationStateFinished;
+}
+
+- (BOOL)isAsynchronous
+{
+    return [self performAsync];
+}
+
+- (BOOL)performAsync
+{
+    return [self.dataSource respondsToSelector:@selector(autoCompleteTextField:possibleCompletionsForString:completionHandler:)];
+}
+
+- (BOOL)performSync
+{
+    return [self.dataSource respondsToSelector:@selector(autoCompleteTextField:possibleCompletionsForString:)];
+}
+
+- (void)start
+{
+    if (self.isCancelled) {
+        self.state = MLPAutoCompleteOperationStateFinished;
+        return;
+    }
+
+    if (self.performAsync == NO && self.performSync == NO) {
+        NSAssert(0, @"An autocomplete datasource must implement either autoCompleteTextField:possibleCompletionsForString: or "
+                 "autoCompleteTextField:possibleCompletionsForString:completionHandler:");
+        self.state = MLPAutoCompleteOperationStateFinished;
+        return;
+    }
+
+    self.state = MLPAutoCompleteOperationStateExecuting;
+    [self main];
+}
 
 - (void)main
 {
-    @autoreleasepool {
-        if (self.isCancelled) {
+    if (self.isCancelled) {
+        self.state = MLPAutoCompleteOperationStateFinished;
+        return;
+    }
+
+    if (self.isAsynchronous) {
+
+        __weak typeof(self) weakSelf = self;
+
+        [self.dataSource autoCompleteTextField:self.textField possibleCompletionsForString:self.incompleteString
+                             completionHandler:^(NSArray *suggestions) {
+                                 [weakSelf performSelector:@selector(didReceiveSuggestions:) withObject:suggestions];
+                             }];
+
+
+    }
+    else {
+        NSArray *results = [self.dataSource autoCompleteTextField:self.textField possibleCompletionsForString:self.incompleteString];
+        if(self.isCancelled) {
             return;
         }
-
-        if([self.dataSource respondsToSelector:@selector(autoCompleteTextField:possibleCompletionsForString:completionHandler:)]) {
-            __block BOOL waitingForSuggestions = YES;
-            __weak MLPAutoCompleteFetchOperation *operation = self;
-
-            [self.dataSource autoCompleteTextField:self.textField possibleCompletionsForString:self.incompleteString
-                completionHandler:^(NSArray *suggestions) {
-
-                [operation performSelector:@selector(didReceiveSuggestions:) withObject:suggestions];
-                waitingForSuggestions = NO;
-            }];
-
-            while(waitingForSuggestions) {
-                [NSThread sleepForTimeInterval:250];
-
-                if(self.isCancelled) {
-                    return;
-                }
-            }
-
-        } else if ([self.dataSource respondsToSelector:@selector(autoCompleteTextField:possibleCompletionsForString:)]) {
-            NSArray *results = [self.dataSource autoCompleteTextField:self.textField possibleCompletionsForString:self.incompleteString];
-
-            if(!self.isCancelled) {
-                [self didReceiveSuggestions:results];
-            }
-
-        } else {
-            NSAssert(0, @"An autocomplete datasource must implement either autoCompleteTextField:possibleCompletionsForString: or "
-                "autoCompleteTextField:possibleCompletionsForString:completionHandler:");
-        }
+        [self didReceiveSuggestions:results];
     }
 }
 
@@ -959,19 +1025,24 @@ static NSString *kAutoCompleteScrollDirectionKeyPath = @"autoCompleteScrollDirec
         suggestions = [NSArray array];
     }
 
-    if(!self.isCancelled) {
-        if(suggestions.count) {
-            NSObject *firstObject = suggestions[0];
-            NSAssert([firstObject isKindOfClass:[NSString class]] || [firstObject conformsToProtocol:@protocol(MLPAutoCompletionObject)],
-                @"MLPAutoCompleteTextField expects an array with objects that are either strings or conform to the MLPAutoCompletionObject "
-                "protocol for possible completions.");
-        }
+    if (self.isCancelled) {
+        self.state = MLPAutoCompleteOperationStateFinished;
+        return;
+    }
 
-        NSDictionary *resultsInfo = @{kFetchedTermsKey: suggestions, kFetchedStringKey : self.incompleteString};
+    if(suggestions.count) {
+        NSObject *firstObject = suggestions[0];
+        NSAssert([firstObject isKindOfClass:[NSString class]] || [firstObject conformsToProtocol:@protocol(MLPAutoCompletionObject)],
+                 @"MLPAutoCompleteTextField expects an array with objects that are either strings or conform to the MLPAutoCompletionObject "
+                 "protocol for possible completions.");
+    }
 
-        [(NSObject *)self.delegate performSelectorOnMainThread:@selector(autoCompleteTermsDidFetch:)
-            withObject:resultsInfo waitUntilDone:NO];
-    };
+    NSDictionary *resultsInfo = @{kFetchedTermsKey: suggestions, kFetchedStringKey : self.incompleteString};
+
+    [(NSObject *)self.delegate performSelectorOnMainThread:@selector(autoCompleteTermsDidFetch:)
+                                                withObject:resultsInfo waitUntilDone:NO];
+
+    self.state = MLPAutoCompleteOperationStateFinished;
 }
 
 - (id)initWithDelegate:(id<MLPAutoCompleteFetchOperationDelegate>)aDelegate
