@@ -918,6 +918,8 @@ typedef NS_ENUM(NSUInteger, MLPAutoCompleteOperationState) {
 
 @interface MLPAutoCompleteFetchOperation ()
 @property(nonatomic,assign) NSInteger state;
+@property(nonatomic,assign) BOOL canPerformAsync;
+@property(nonatomic,assign) BOOL canPerformSync;
 @end
 
 @implementation MLPAutoCompleteFetchOperation
@@ -961,15 +963,15 @@ typedef NS_ENUM(NSUInteger, MLPAutoCompleteOperationState) {
 
 - (BOOL)isAsynchronous
 {
-    return [self performAsync];
+    return self.canPerformAsync;
 }
 
-- (BOOL)performAsync
+- (BOOL)canPerformAsync
 {
     return [self.dataSource respondsToSelector:@selector(autoCompleteTextField:possibleCompletionsForString:completionHandler:)];
 }
 
-- (BOOL)performSync
+- (BOOL)canPerformSync
 {
     return [self.dataSource respondsToSelector:@selector(autoCompleteTextField:possibleCompletionsForString:)];
 }
@@ -981,7 +983,7 @@ typedef NS_ENUM(NSUInteger, MLPAutoCompleteOperationState) {
         return;
     }
 
-    if (self.performAsync == NO && self.performSync == NO) {
+    if (self.canPerformAsync == NO && self.canPerformSync == NO) {
         NSAssert(0, @"An autocomplete datasource must implement either autoCompleteTextField:possibleCompletionsForString: or "
                  "autoCompleteTextField:possibleCompletionsForString:completionHandler:");
         self.state = MLPAutoCompleteOperationStateFinished;
@@ -1000,15 +1002,11 @@ typedef NS_ENUM(NSUInteger, MLPAutoCompleteOperationState) {
     }
 
     if (self.isAsynchronous) {
-
         __weak typeof(self) weakSelf = self;
-
         [self.dataSource autoCompleteTextField:self.textField possibleCompletionsForString:self.incompleteString
                              completionHandler:^(NSArray *suggestions) {
                                  [weakSelf performSelector:@selector(didReceiveSuggestions:) withObject:suggestions];
                              }];
-
-
     }
     else {
         NSArray *results = [self.dataSource autoCompleteTextField:self.textField possibleCompletionsForString:self.incompleteString];
