@@ -1004,28 +1004,25 @@ typedef NS_ENUM(NSUInteger, MLPAutoCompleteOperationState) {
     if (self.isAsynchronous) {
         __weak typeof(self) weakSelf = self;
         [self.dataSource autoCompleteTextField:self.textField possibleCompletionsForString:self.incompleteString
-                             completionHandler:^(NSArray *suggestions) {
-                                 [weakSelf performSelector:@selector(didReceiveSuggestions:) withObject:suggestions];
+                             completionHandler:^(NSArray *results) {
+                                 [weakSelf didReceiveSuggestions:results];
                              }];
     }
     else {
         NSArray *results = [self.dataSource autoCompleteTextField:self.textField possibleCompletionsForString:self.incompleteString];
-        if(self.isCancelled) {
-            return;
-        }
         [self didReceiveSuggestions:results];
     }
 }
 
 - (void)didReceiveSuggestions:(NSArray *)suggestions
 {
-    if(suggestions == nil) {
-        suggestions = [NSArray array];
-    }
-
     if (self.isCancelled) {
         self.state = MLPAutoCompleteOperationStateFinished;
         return;
+    }
+    
+    if(suggestions == nil) {
+        suggestions = [NSArray array];
     }
 
     if(suggestions.count) {
